@@ -1,0 +1,52 @@
+@import '@fontsource/roboto/300.css';
+@import '@fontsource/roboto/400.css';
+@import '@fontsource/roboto/500.css';
+@import '@fontsource/roboto/700.css';
+
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #1a1a1a;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.post-card {
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.post-title {
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.post-author {
+  font-size: 14px;
+  color: #757575;
+  margin-bottom: 8px;
+}
+
+.post-excerpt {
+  font-size: 16px;
+  color: #424242;
+}
+
+.rich-text-editor {
+  border: 1px solid #ccc;
+  padding: 5px;
+  border-radius: 2px;
+}
+
+.rich-text-editor .rdw-editor-main {
+  background-color: #fff;
+  min-height: 200px;
+  padding: 10px;
+}
