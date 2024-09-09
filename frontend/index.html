@@ -1,12 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crypto Blog</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GEMS Changelog: Stay updated with the latest features and improvements">
+    <title>GEMS Changelog</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.5;
+            color: #24292e;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        .changelog-entry {
+            display: flex;
+            margin-bottom: 30px;
+        }
+        .changelog-date {
+            flex: 0 0 120px;
+            font-size: 14px;
+            color: #586069;
+            text-align: right;
+            padding-right: 20px;
+            padding-top: 8px;
+        }
+        .changelog-content {
+            flex: 1;
+            border-bottom: 1px solid #e1e4e8;
+            padding-bottom: 20px;
+        }
+        .changelog-version {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+        }
+        .changelog-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .changelog-section h3::before {
+            content: '▼';
+            display: inline-block;
+            margin-right: 5px;
+            transition: transform 0.3s ease;
+        }
+        .changelog-section h3.collapsed::before {
+            transform: rotate(-90deg);
+        }
+        .changelog-list {
+            margin: 0;
+            padding: 0 0 0 20px;
+        }
+        .changelog-list li {
+            margin-bottom: 5px;
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #586069;
+        }
+        code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-size: 85%;
+            margin: 0;
+            padding: 0.2em 0.4em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Changelog</h1>
+
+    <div id="changelog-container">
+        <p class="loading">Loading changelog...</p>
+    </div>
+
+    <script>
+        const GITHUB_API_URL = 'https://api.github.com/repos/dfinity/oisy-wallet/releases';
+
+        async function fetchReleases() {
+            try {
+                const response = await fetch(GITHUB_API_URL);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching releases:', error);
+                return [];
+            }
+        }
+
+        function createChangelogEntry(release) {
+            const date = new Date(release.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            return `
+                <article class="changelog-entry">
+                    <div class="changelog-date">${date}</div>
+                    <div class="changelog-content">
+                        <h2 class="changelog-version">${release.name || release.tag_name}</h2>
+                        ${parseReleaseBody(release.body)}
+                    </div>
+                </article>
+            `;
+        }
+
+        function parseReleaseBody(body) {
+            const sections = body.split(/(?=^## )/gm);
+            return sections.map(section => {
+                const [title, ...content] = section.split('\n');
+                const titleMatch = title.match(/^## (.+)/);
+                if (titleMatch) {
+                    const sectionTitle = titleMatch[1];
+                    const sectionContent = content.join('\n').trim();
+                    return `
+                        <div class="changelog-section">
+                            <h3 onclick="toggleSection(this)">${sectionTitle}</h3>
+                            <div class="changelog-section-content">
+                                ${markdownToHtml(sectionContent)}
+                            </div>
+                        </div>
+                    `;
+                }
+                return markdownToHtml(section);
+            }).join('');
+        }
+
+        function markdownToHtml(markdown) {
+            return markdown
+                .replace(/^### (.*$)/gim, '<h4>$1</h4>')
+                .replace(/^## (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^# (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^\* (.*$)/gim, '<ul class="changelog-list"><li>$1</li></ul>')
+                .replace(/^- (.*$)/gim, '<ul class="changelog-list"><li>$1</li></ul>')
+                .replace(/`(.+?)`/g, '<code>$1</code>')
+                .replace(/\n\n/g, '<br><br>');
+        }
+
+        function toggleSection(element) {
+            element.classList.toggle('collapsed');
+            const content = element.nextElementSibling;
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function displayChangelog() {
+            const container = document.getElementById('changelog-container');
+            const releases = await fetchReleases();
+
+            if (releases.length === 0) {
+                container.innerHTML = '<p>No releases found.</p>';
+                return;
+            }
+
+            const changelogHTML = releases.map(createChangelogEntry).join('');
+            container.innerHTML = changelogHTML;
+        }
+
+        // Load the changelog when the page loads
+        window.addEventListener('load', displayChangelog);
+    </script>
+</body>
 </html>
